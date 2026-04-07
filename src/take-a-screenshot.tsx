@@ -1,11 +1,12 @@
 import { closeMainWindow, launchCommand, LaunchType } from "@raycast/api"; 
 import { promisify } from "util";
-import { exec } from "child_process";
+import { execSync } from "child_process";
 import fs from "fs";
 const path = require("node:path"); 
 
-const execAsync = promisify(exec);
-
+/**
+ * Generates a unique filename for each screenshot.  
+*/
 function getUniqueFileName(): string { 
 	const files = fs.readdirSync("/tmp/raycast-screenshots"); 
 	const names = files.map((file) => path.parse(file).name); 
@@ -17,10 +18,13 @@ function getUniqueFileName(): string {
 	return randomFileName;
 }
 
+/**
+ * Takes the screenshot and launches the sort-screenshot command. 
+*/
 export default async function Command() {
 	await closeMainWindow({ clearRootSearch: true }); 
-	await execAsync('mkdir -p /tmp/raycast-screenshots'); 
+	execSync('mkdir -p /tmp/raycast-screenshots'); 
 	let name = getUniqueFileName(); 
-	await execAsync(`/usr/sbin/screencapture -i /tmp/raycast-screenshots/${name}.png`);
-	await launchCommand({ name: "sort-screenshot", type: LaunchType.UserInitiated });
+	execSync(`/usr/sbin/screencapture -i /tmp/raycast-screenshots/${name}.png`);
+	await launchCommand({ name: "sort-screenshot", type: LaunchType.UserInitiated, context: { name: name } });
 }
